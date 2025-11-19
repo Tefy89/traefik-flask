@@ -1,7 +1,6 @@
 version: "3.9"
 
 services:
-
   traefik:
     image: traefik:v3.0
     command:
@@ -17,9 +16,10 @@ services:
       - "443:443"
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock:ro"
-      - "./traefik/traefik.yml:/traefik.yml"
       - "./traefik/acme.json:/acme.json"
     restart: always
+    networks:
+      - web
 
   flask-app:
     build: .
@@ -29,4 +29,11 @@ services:
       - "traefik.http.routers.flask.rule=Host(`flask.byronrm.com`)"
       - "traefik.http.routers.flask.entrypoints=websecure"
       - "traefik.http.routers.flask.tls.certresolver=letsencrypt"
+      - "traefik.http.services.flask.loadbalancer.server.port=5000"
     restart: always
+    networks:
+      - web
+
+networks:
+  web:
+    external: false
